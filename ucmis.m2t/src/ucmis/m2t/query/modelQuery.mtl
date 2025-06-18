@@ -1,0 +1,246 @@
+[comment encoding = UTF-8 /]
+[**
+ * Module contains all additional model queries. Their names start with "u_" (UCMIS.M2T).
+ */]
+[module modelQuery('http://www.eclipse.org/uml2/5.0.0/UML', 'http://www.eclipse.org/uml2/5.0.0/Types', 'http://www.eclipse.org/uml2/5.0.0/UML/Profile/Standard')/]
+
+[**
+ own getProperty.
+ /]
+[query public ownGetProperty(aString : String) : String =
+  if ( aString = 'XSD_NS' ) then 'http://ddialliance.org/Specification/DDI-CDI/1.0/XMLSchema/'
+    else if ( aString = 'MAIN_PACKAGE' ) then 'DDICDILibrary'
+      else if ( aString = 'DDI-CDI' ) then 'true'
+        else ''
+      endif
+    endif
+  endif
+/]
+
+[**
+ Returns the data type object named 'ModelIdentification'.
+ /]
+[query public u_modelIdentication( aModel : uml::Model ) : uml::DataType =
+    aModel.eAllContents(uml::DataType)->select( d : uml::DataType | d.name = 'ModelIdentification' )->first()
+/]
+
+
+[**
+ Returns the short name of the model as string.
+ /]
+[query public u_modelShortName( aModel : uml::Model ) : String =
+    aModel.u_modelIdentication().eContents(uml::Property)->select(d : uml::Property | d.name='acronym').default +
+	'_' +
+	aModel.u_modelIdentication().eContents(uml::Property)->select(d : uml::Property | d.name='majorVersion').default +
+	'-' +
+	aModel.u_modelIdentication().eContents(uml::Property)->select(d : uml::Property | d.name='minorVersion').default
+/]
+
+[**
+ Returns the model acronym as string.
+ /]
+[query public u_modelAcronym( aModel : uml::Model ) : String =
+	aModel.u_modelIdentication().eContents(uml::Property)->select(d : uml::Property | d.name='acronym').default->first()
+/]
+
+[**
+ Returns the natural language code of the model as string.
+ /]
+[query public u_modelLanguage( aModel : uml::Model ) : String =
+	aModel.u_modelIdentication().eContents(uml::Property)->select(d : uml::Property | d.name='language').default->first()
+/]
+
+[**
+ Returns the major version of the model as string.
+ /]
+[query public u_modelMajorVersion( aModel : uml::Model ) : String =
+	aModel.u_modelIdentication().eContents(uml::Property)->select(d : uml::Property | d.name='majorVersion').default->first()
+/]
+
+[**
+ Returns the minor version of the model as string.
+ /]
+[query public u_modelMinorVersion( aModel : uml::Model ) : String =
+  aModel.u_modelIdentication().eContents(uml::Property)->select(d : uml::Property | d.name='minorVersion').default->first()
+/]
+
+[**
+ Returns the version of the model as string.
+ /]
+[query public u_modelVersion( aModel : uml::Model ) : String =
+  aModel.u_modelMajorVersion() + '.' + aModel.u_modelMinorVersion()
+/]
+
+[**
+ Returns the URI of the model specification as string.
+ /]
+[query public u_modelUri( aModel : uml::Model ) : String =
+	aModel.u_modelIdentication().eContents(uml::Property)->select(d : uml::Property | d.name='uri').default->first()
+/]
+
+[**
+ Returns the model title as string.
+ /]
+[query public u_modelTitle( aModel : uml::Model ) : String =
+  aModel.u_modelIdentication().eContents(uml::Property)->select(d : uml::Property | d.name='title').default + ''
+/]
+
+[**
+ Returns the model title as string.
+ /]
+[query public u_modelSubtitle( aModel : uml::Model ) : String =
+  aModel.u_modelIdentication().eContents(uml::Property)->select(d : uml::Property | d.name='subtitle').default + ''
+/]
+
+[**
+ * Returns a package object identified by the main package name (specified by the property MAIN_PACKAGE).
+ * The package name can be either the name of the model itself or the name of a sub-package.
+ * A package is a generalization of the model in the UML metamodel.
+ */]
+[query public u_mainPackage( aModel : uml::Model ) : uml::Package =
+  aModel->asSequence()->union( aModel.eAllContents( uml::Package ) )
+    ->select( p : uml::Package | p.name = 'MAIN_PACKAGE'.ownGetProperty() )
+    ->at( 1 )
+/]
+
+[**
+ * Returns trimmed documentation of a named element.
+ */]
+[query public u_trimmedDocumentation(aNamedElement : uml::NamedElement) : String =
+  aNamedElement.ownedComment._body->first().toString().trim()
+/]
+
+[**
+ * Returns an ordered set of subclasses of a class, sorted by class name.
+ */]
+[query public u_subClasses(aClass : uml::Class) : OrderedSet(uml::Class) =
+  aClass.eInverse(uml::Class)
+    ->sortedBy(c : uml::Class | c.name)
+/]
+
+[query public ucmis_shortAssociationName(anAssociation : uml::Association) : String =
+  if anAssociation.name.contains('_') then
+    let sAfterUnderscore : String = anAssociation.name.substring(anAssociation.name.index('_') + 1) in sAfterUnderscore.first(sAfterUnderscore.index('_') - 1)
+  else
+    anAssociation.name
+  endif
+/]
+
+[**
+ * Returns an ordered set of all classes of a subclass hierarchy of a class.
+ */]
+[query public u_allSubclasses(aClass : uml::Class) : OrderedSet(uml::Class) =
+  if aClass.u_subClasses()->notEmpty() then
+    aClass.u_subClasses()
+      ->union( aClass.u_subClasses()->collect( c | c.u_allSubclasses() ) )
+  else
+    OrderedSet{}
+  endif
+/]
+
+[**
+ * Returns an ordered set of all classes of a subclass hierarchy of a class
+ * plus the class itself - only non abstract ones.
+ */]
+[query public e_allSubclassesPlusSelfNonAbstract(aClass : uml::Class ) : OrderedSet(uml::Class) =
+  aClass.u_allSubclassesPlusSelf()
+    ->select(c | c.isAbstract=false)
+    ->asOrderedSet()
+/]
+
+[**
+ * Returns an ordered set of subclasses including self.
+ */]
+[query public u_allSubclassesPlusSelf(aClass : uml::Class ) : OrderedSet(uml::Class) =
+  aClass.u_allSubclasses()->union(aClass->asSet())
+    ->asOrderedSet()
+    ->sortedBy(c : uml::Class | c.name)
+/]
+
+[**
+ * Returns an ordered set of non-abstract subclasses including self.
+ */]
+[query public u_allSubclassesPlusSelfNonAbstract(aClass : uml::Class ) : OrderedSet(uml::Class) =
+  aClass.u_allSubclassesPlusSelf()
+    ->select(c : uml::Class | c.isAbstract=false)
+    ->asOrderedSet()
+/]
+
+[**
+ * Returns the type name as string.
+ * (includes a workaround for UML primitive names)
+ */]
+[query public u_typeName(aType : uml::Type) : String =
+  if (aType.name.size()>0) then 
+    aType.name
+  else
+    aType.
+      toString().
+      substring(aType.toString().index('#')+1).
+      substitute( ')', '' )
+  endif
+/]
+
+[**
+ * Returns an ordered set of the superclass hierarchy of a class,
+ * where the order starts with the direct superclass.
+ */]
+[query public u_allSuperclasses(aClass : uml::Class) : OrderedSet(uml::Class) =
+  if ( aClass.superClass->notEmpty() ) then
+    aClass.superClass
+      ->union( aClass.superClass.u_allSuperclasses() )
+      ->asOrderedSet()
+  else
+    OrderedSet{}
+  endif
+/]
+
+[**
+ * Returns an ordered set of the superclass hierarchy of a class,
+ * where the order starts with the direct superclass.
+ */]
+[query public u_allSuperDataTypes(aDataType : uml::DataType) : OrderedSet(uml::DataType) =
+  if ( aDataType.general->notEmpty() ) then
+    aDataType.general->first().oclAsType(uml::DataType)
+      ->union( aDataType.general->first().oclAsType(uml::DataType).u_allSuperDataTypes() )
+      ->asOrderedSet()
+  else
+    OrderedSet{}
+  endif
+/]
+
+[**
+ * Returns an ordered set of classifier attributes, sorted by attribute name.
+ * Note: Intended for use with classes and data types.
+ */]
+[query public u_attributes( aClassifier : uml::Classifier ) : OrderedSet(uml::Property) =
+  aClassifier.eContents(uml::Property)
+    ->select(c | c.association = null)
+    ->asOrderedSet()
+    ->sortedBy(c | c.name)
+/]
+
+[**
+ * Returns an ordered set of association properties of a class.
+ */]
+[query public u_associationProperties( aClass : uml::Class ) : OrderedSet(uml::Property) =
+  aClass.eContents(uml::Property)
+    ->select(c | c.association <> null)
+    ->asOrderedSet()
+/]
+
+[**
+ * Returns the class of the owned (source) end of an association.
+ */]
+[query public u_sourceClass(anAssociation : uml::Association) : uml::Class =
+  anAssociation.ownedEnd->first()
+    .type.oclAsType(uml::Class)
+/]
+
+[**
+ * Returns the class of the other (target) end of an association.
+ */]
+[query public u_targetClass(anAssociation : uml::Association) : uml::Class =
+  anAssociation.ownedEnd->first()
+  .getOtherEnd().type.oclAsType(uml::Class)
+/]

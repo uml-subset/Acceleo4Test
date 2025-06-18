@@ -1,0 +1,17 @@
+[comment encoding = UTF-8 /]
+[**
+ * All templates in the *Doc.mtl modules generate reStructuredText for processing with Sphinx.
+ */]
+[module modelDocFile('http://www.eclipse.org/uml2/5.0.0/UML', 'http://www.eclipse.org/uml2/5.0.0/Types', 'http://www.eclipse.org/uml2/5.0.0/UML/Profile/Standard')/]
+
+[**
+ Processes a UML class model that meets the requirements of UCMIS.
+ Creates a file for the model.
+ /]
+[template public processModelDoc(aModel : uml::Model)]
+  [file ( aModel.name + '/index.rst', overwrite )]
+    [for (aPackage : uml::Package | aModel.eAllContents(uml::Package))]
+      [aPackage.qualifiedName/]
+    [/for]
+  [/file]
+[/template]

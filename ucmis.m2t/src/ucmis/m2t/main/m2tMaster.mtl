@@ -1,0 +1,45 @@
+[comment encoding = UTF-8 /]
+[**
+ * Master for generating target languages on the basis of a UML class model
+ * 
+ * The model should comply to UCMIS.
+ * See: https://bitbucket.org/ddi-alliance/ucmis/ 
+ * 
+ */]
+[module m2tMaster('http://www.eclipse.org/uml2/5.0.0/UML', 'http://www.eclipse.org/uml2/5.0.0/Types', 'http://www.eclipse.org/uml2/5.0.0/UML/Profile/Standard')/]
+
+[import ucmis::m2t::query::modelQuery/]
+[import ucmis::m2t::target::doc::modelDocFile/]
+[import ucmis::m2t::target::xsd::modelXsdFile/]
+[import ucmis::m2t::test::test/]
+
+[**
+ Processes a UML class model.
+ Options can be defined in a properties file.
+ A file hierarchy is created that corresponds to the package/class hierarchy in the model.
+ The result is one file per package, per class and per data type with detailed information.
+ @main
+ /]
+[template public u_processModel(aModel : uml::Model)]
+  [comment] TODO: Are Java property files possible?
+  	Not mentioned in 'Run Configurations'. Where can they be mentioned? classpath?
+  	getProperty doesn't exist. Is a Java service class necessary like getProperty?
+  	How are property files mentioned in CLI? In classpath?
+  Acceleo3: [if (getProperty('doc').trim().equalsIgnoreCase('true'))]
+  [/comment]
+  [aModel.name/]
+  [let doc = 'false']
+    [if (doc = 'true')]
+  	  [aModel.processModelDoc()/]
+    [/if]
+  [/let]
+  [let xsd = 'false']
+    [if (xsd = 'true')]
+      [aModel.u_test()/]
+      [aModel.processModelXsd()/]
+    [/if]
+  [/let]
+  [if ('xsd'.getProperty().trim().equalsIgnoreCase('true'))]
+	[aModel.processModelXsd()/]
+   [/if]
+[/template]

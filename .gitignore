@@ -1,0 +1,12 @@
+# Compiled Java class files
+*.class
+# generated code
+bin
+# generated output
+generated
+# model files
+model
+# backup files
+z_backup
+z_original
+.pydevproject

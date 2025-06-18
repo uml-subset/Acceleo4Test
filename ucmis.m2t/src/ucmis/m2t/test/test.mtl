@@ -1,0 +1,61 @@
+[comment encoding = UTF-8 /]
+[**
+ * Tests for Acceleo expressions.
+ */]
+[module test('http://www.eclipse.org/uml2/5.0.0/UML', 'http://www.eclipse.org/uml2/5.0.0/Types', 'http://www.eclipse.org/uml2/5.0.0/UML/Profile/Standard')/]
+
+[comment] [import java::util::Properties /][/comment]
+[import ucmis::m2t::query::modelQuery/]
+[import ucmis::m2t::target::xsd::commonXsd /]
+
+[comment]
+  + aClass.eInverse(uml::Abstraction)
+  0 aClass.eInverse(uml::Association)
+  + aClass.eInverse(uml::Comment)
+  + aClass.eInverse(uml::Package)
+  ? aClass.eInverse(uml::Generalization)
+  + aClass.eInverse(uml::Property)->select(p|p.association = null)
+[/comment]
+
+[template public u_test(aModel : uml::Model)]
+  [file ( 'test.txt', overwrite )]
+    XX ['jsonschema'.getProperty() /]
+  [/file]
+[/template]
+
+[template public Xu_test(aModel : uml::Model)]
+  [file ( 'test.txt', overwrite )]
+    [for ( aDataType | aModel.u_mainPackage().eAllContents(uml::DataType)
+      ->select( d | not( d.oclIsTypeOf( uml::Enumeration ) ) and
+        not( d.oclIsTypeOf( uml::PrimitiveType ) ) )
+      ->sortedBy( self | self.qualifiedName)
+      ) ]
+      aDataType.qualifiedName: [aDataType.qualifiedName/]
+      u_allDatatypes: [for (d | aDataType.u_allSuperDataTypes()) ][d.name /], [/for]
+    [/for]
+    [aModel.u_trimmedDocumentation().uxsd_documentation() /]
+    #################################################################
+    [for (aClass | aModel.eAllContents(uml::Class)
+      ->sortedBy( c | c.name )    
+    )]
+      Class: [aClass.name/]
+      Superclass: [if ( aClass.superClass->size()>0 ) ][aClass.superClass->first().name/][/if]
+      eInverse size: [aClass.eInverse(uml::Generalization)->size() /]
+      [if (aClass.superClass->notEmpty())]has a superclass[/if]
+      [if (aClass.getSuperClasses()->notEmpty())]has a superclass[/if]
+      u_allSuperclasses: [for (c | aClass.u_allSuperclasses()) ][c.name /], [/for]
+      [for ( aProperty | aClass.attribute
+          ->select(p|p.association = null)
+      )]
+        aProperty: [aProperty /]
+        aProperty.toString: [aProperty.toString() /]
+        aProperty.name: [aProperty.name /]
+        aProperty.type: [aProperty.type /]
+        aProperty.type size: [aProperty.type.name.size() /]
+        aProperty.type.name: [aProperty.type.name /]
+        aProperty.type.getURIFragment(): [aProperty.type.getURIFragment() /]
+        aProperty.type.getLabel: [aProperty.type.getLabel() /]
+      [/for]
+    [/for]
+  [/file]
+[/template]

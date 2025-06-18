@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+   <feature url="features/ucmis.m2t_1.0.0.qualifier.jar" id="ucmis.m2t" version="1.0.0.qualifier">
+      <category name="ucmis.m2t"/>
+   </feature>
+   <category-def name="ucmis.m2t" label="Acceleo Launcher Sample"/>
+</site>

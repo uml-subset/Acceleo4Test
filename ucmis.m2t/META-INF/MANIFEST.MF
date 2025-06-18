@@ -1,0 +1,21 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Sample
+Bundle-SymbolicName: ucmis.m2t
+Bundle-Version: 1.0.0.qualifier
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Require-Bundle: 
+ org.eclipse.acceleo.query;bundle-version="[8.0.4,9.0.0)",
+ org.eclipse.acceleo.aql;bundle-version="[4.1.1,5.0.0)",
+ org.eclipse.acceleo.aql.profiler;bundle-version="[4.1.1,5.0.0)",
+ org.antlr.runtime;bundle-version="[4.10.1,4.10.2)",
+ org.eclipse.uml2.uml;bundle-version="5.5.0.v20221116-1811",
+ org.eclipse.uml2.types;bundle-version="2.5.0.v20221116-1811",
+ org.eclipse.uml2.uml.profile.standard;bundle-version="1.5.0.v20221116-1811",
+ org.eclipse.uml2.uml.resources;bundle-version="5.5.0.v20221116-1811",
+ org.eclipse.uml2.common;bundle-version="2.5.0.v20221116-1811",
+ org.eclipse.emf.ecore;bundle-version="2.36.0.v20240203-0859",
+ org.eclipse.emf.ecore.xmi;bundle-version="2.37.0.v20231208-1346",
+ org.eclipse.emf.common;bundle-version="2.30.0.v20240314-0928",
+ org.eclipse.emf.mapping.ecore2xml;bundle-version="2.12.0.v20230211-1150"
+Export-Package: ucmis.m2t.main
