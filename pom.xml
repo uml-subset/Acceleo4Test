@@ -1,3 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+   Copyright (C) 2011, 2025 Obeo
+
+   All rights reserved. This program and the accompanying materials
+   are made available under the terms of the Eclipse Public License v1.0
+   which accompanies this distribution, and is available at
+   http://www.eclipse.org/legal/epl-v10.html
+-->
+
+<!--
+USAGE:
+- build
+  mvn clean deploy -Pcompile
+- generate with Elcipse launcher
+  mvn clean verify -Pgenerate
+-->
+
 <project xmlns="http://maven.apache.org/POM/4.0.0"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
@@ -63,6 +81,11 @@
       </modules>
 
       <build>
+	    <resources>
+		  <resource>
+		    <directory>model</directory>
+		  </resource>
+	    </resources>
         <plugins>
           <plugin>
             <groupId>org.eclipse.tycho</groupId>
@@ -109,107 +132,80 @@
         </pluginManagement>
       </build>
     </profile>
-    <profile>
-      <id>generate-maven-main-class</id>
+   <profile>
+      <id>generate</id>
       <activation>
         <activeByDefault>false</activeByDefault>
       </activation>
-      
-      <repositories>
-        <!-- The repository built from the "compile" profile which contains our generator projects. The deploy directive created a Maven repository. -->
-        <repository>
-          <id>Acceleo generator</id>
-          <url>file://${maven.multiModuleProjectDirectory}/${maven-repository-p2}</url>
-        </repository>
-        <!-- Acceleo 4 maven repository -->
-        <repository>
-          <id>Acceleo 4</id>
-          <url>https://download.eclipse.org/acceleo/updates/nightly/4.1.1.202505261500/</url>
-        </repository>
-      </repositories>
-
-      <dependencies>
-        <!-- generator dependency -->
-        <dependency>
-          <groupId>uml-subset</groupId>
-          <artifactId>ucmis.m2t</artifactId>
-          <version>1.0.0-SNAPSHOT</version>
-        </dependency>
-        <!-- Acceleo dependency -->
-        <dependency>
-          <groupId>org.eclipse.acceleo</groupId>
-          <artifactId>acceleo</artifactId>
-          <version>4.1.1-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-      		<groupId>org.eclipse.uml2</groupId>
-      		<artifactId>org.eclipse.uml2.uml</artifactId>
-      		<version>5.5.0.v20221116-1811</version>
-    	</dependency>
-    	<dependency>
-      		<groupId>org.eclipse.uml2</groupId>
-      		<artifactId>org.eclipse.uml2.types</artifactId>
-      		<version>2.5.0.v20221116-1811</version>
-    	</dependency>
-    	<dependency>
-      		<groupId>org.eclipse.uml2</groupId>
-      		<artifactId>org.eclipse.uml2.uml.profile.standard</artifactId>
-      		<version>1.5.0.v20221116-1811</version>
-    	</dependency>
-    	<dependency>
-      		<groupId>org.eclipse.uml2</groupId>
-      		<artifactId>org.eclipse.uml2.uml.resources</artifactId>
-      		<version>5.5.0.v20221116-1811</version>
-    	</dependency>
-    	<dependency>
-      		<groupId>org.eclipse.uml2</groupId>
-      		<artifactId>org.eclipse.uml2.common</artifactId>
-      		<version>5.5.0.v20221116-1811</version>
-    	</dependency>
-    	<dependency>
-      		<groupId>org.eclipse.emf</groupId>
-      		<artifactId>org.eclipse.emf.ecore</artifactId>
-      		<version>2.36.0.v20240203-0859</version>
-    	</dependency>
-    	<dependency>
-      		<groupId>org.eclipse.emf</groupId>
-      		<artifactId>org.eclipse.emf.ecore.xmi</artifactId>
-      		<version>2.37.0.v20231208-1346</version>
-    	</dependency>
-    	<dependency>
-      		<groupId>org.eclipse.emf</groupId>
-      		<artifactId>org.eclipse.emf.common</artifactId>
-      		<version>2.30.0.v20240314-0928</version>
-    	</dependency>
-    	<dependency>
-      		<groupId>org.eclipse.emf</groupId>
-      		<artifactId>org.eclipse.emf.mapping.ecore2xml</artifactId>
-      		<version>2.12.0.v20230211-1150</version>
-    	</dependency>
-      </dependencies>
-
       <build>
         <plugins>
           <plugin>
-           <groupId>org.codehaus.mojo</groupId>
-           <artifactId>exec-maven-plugin</artifactId>
-           <version>3.5.0</version>
+            <groupId>org.eclipse.tycho</groupId>
+            <artifactId>tycho-eclipse-plugin</artifactId>
+            <version>${tycho-version}</version>
+            <configuration>
+              <repositories>
+                <!-- The repository built from the "compile" profile which contains our generator projects. -->
+                <repository>
+                  <id>Acceleo generator</id>
+                  <layout>p2</layout>
+                  <url>${project.baseUri}ucmis.m2t.site/target/repository/</url>
+                </repository>
+                <!-- Acceleo 4 repository containing the launcher feature. -->
+                <repository>
+                  <id>Acceleo 4</id>
+                  <layout>p2</layout>
+                  <url>https://download.eclipse.org/acceleo/updates/nightly/4.1.1.202505261500/</url>
+                </repository>
+                <!-- Eclipse repository for all other dependencies. -->
+                <repository>
+                  <id>Eclipse 2024-06 update site</id>
+                  <layout>p2</layout>
+                  <url>https://download.eclipse.org/releases/2024-06/</url>
+                </repository>
+              </repositories>
+			  
+			   <dependencies>
+                <dependency>
+                  <artifactId>org.eclipse.rcp</artifactId>
+                  <type>eclipse-feature</type>
+                </dependency>
+                <!-- We need the actual launcher application -->
+                <dependency>
+                  <artifactId>org.eclipse.acceleo.aql.launcher</artifactId>
+                  <type>eclipse-feature</type>
+                </dependency>
+                <!-- And the bundle containing our templates must be present -->
+                <dependency>
+                  <artifactId>ucmis.m2t</artifactId>
+                  <type>eclipse-plugin</type>
+                </dependency>
+              </dependencies>
+			  
+              <applicationsArgs>
+                <args>-consoleLog</args>
+                <args>-application</args>
+                <args>org.eclipse.acceleo.aql.launcher.AcceleoLauncher</args>
+                <args>-data</args>
+                <args>${project.build.directory}/wks</args>
+                <args>-bundle</args>
+                <args>ucmis.m2t</args>
+                <args>-module</args>
+                <args>ucmis::m2t::main::m2tMaster</args>
+                <args>-models</args>
+                <args>platform:/plugin/ucmis.m2t/model/ddi-cdi_canonical-unique-names-eclipse.xmi</args>
+                <args>-target</args>
+                <args>file:/${project.build.directory}/generated/</args>
+              </applicationsArgs>
+            </configuration>
             <executions>
               <execution>
                 <goals>
-                  <goal>java</goal>
+                  <goal>eclipse-run</goal>
                 </goals>
+                <phase>verify</phase>
               </execution>
             </executions>
-            <configuration>
-              <includePluginDependencies>true</includePluginDependencies>
-              <mainClass>ucmis.m2t.main.M2tMasterGenerator</mainClass>
-              <arguments>
-                <argument>ucmis.m2t/model/ddi-cdi_canonical-unique-names-eclipse.xmi</argument>
-                <argument>${project.build.directory}/generated/</argument>
-              </arguments>
-              <cleanupDaemonThreads>false</cleanupDaemonThreads>
-            </configuration>
           </plugin>
         </plugins>
       </build>

@@ -12,6 +12,7 @@
 [import ucmis::m2t::target::doc::modelDocFile/]
 [import ucmis::m2t::target::xsd::modelXsdFile/]
 [import ucmis::m2t::test::test/]
+[import ucmis::m2t::service::CustomServices/]
 
 [**
  Processes a UML class model.

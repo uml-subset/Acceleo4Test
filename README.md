@@ -21,5 +21,8 @@ This version uses [Acceleo 4](https://download.eclipse.org/acceleo/updates/relea
 ```
 cd Acceleo4Test
 
-. ./run.sh
+mvn clean deploy -Pcompile
+
+mvn clean exec:java -Pgenerate
+
 ```
